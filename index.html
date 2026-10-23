@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html class="dark" lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>BingeTrack — Show Scheduler &amp; Tracker (Android Emulator)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "surface": "#10131a",
+            "surface-dim": "#10131a",
+            "surface-bright": "#363941",
+            "surface-container-lowest": "#0b0e15",
+            "surface-container-low": "#191b23",
+            "surface-container": "#1d1f27",
+            "surface-container-high": "#272a32",
+            "surface-container-highest": "#32353d",
+            "on-surface": "#e1e2ec",
+            "on-surface-variant": "#ccc3d8",
+            "outline": "#958da1",
+            "outline-variant": "#4a4455",
+            "primary": "#d2bbff",
+            "primary-container": "#7c3aed",
+            "on-primary": "#3f008e",
+            "on-primary-container": "#ede0ff",
+            "secondary": "#4cd7f6",
+            "secondary-container": "#03b5d3",
+            "on-secondary": "#003640",
+            "tertiary": "#d0bcff",
+            "tertiary-container": "#7645e0",
+            "error": "#ffb4ab",
+            "background": "#10131a"
+          },
+          fontFamily: {
+            sans: ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 500, 'GRAD' 0, 'opsz' 24; }
+    .icon-filled { font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 24; }
+  </style>
+</head>
+<body class="bg-[#07090e] text-on-surface font-sans antialiased min-h-screen flex items-center justify-center p-4 select-none">
+
+  <div class="flex flex-col lg:flex-row items-center gap-8 max-w-6xl w-full justify-center">
+
+    <!-- ANDROID PIXEL 9 PRO EMULATOR FRAME -->
+    <div id="emulator-shell" class="relative w-[412px] h-[860px] rounded-[52px] bg-[#141824] p-3.5 shadow-[0_24px_80px_rgba(0,0,0,0.85)] border-4 border-[#2b3040] flex flex-col shrink-0">
+
+      <!-- Android Status Bar + Camera Punch-Hole -->
+      <div class="h-8 px-6 bg-surface-container-lowest rounded-t-[38px] flex items-center justify-between text-xs font-semibold text-on-surface shrink-0">
+        <span>9:41</span>
+        <div class="w-3.5 h-3.5 rounded-full bg-black border border-surface-container-high"></div>
+        <div class="flex items-center gap-1.5 text-[11px]">
+          <span class="material-symbols-outlined text-[14px]">signal_cellular_alt</span>
+          <span class="material-symbols-outlined text-[14px]">wifi</span>
+          <span class="material-symbols-outlined text-[14px]">battery_full</span>
+        </div>
+      </div>
+
+      <!-- App Top Header -->
+      <header class="h-16 px-4 bg-surface-container-lowest/90 backdrop-blur-xl border-b border-white/5 flex items-center justify-between shrink-0 z-30">
+        <div class="flex items-center gap-2.5">
+          <button id="header-back-btn" onclick="switchScreen('schedule')" class="hidden w-9 h-9 -ml-1 rounded-full items-center justify-center text-on-surface hover:text-secondary active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[22px]">arrow_back</span>
+          </button>
+          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary-container to-secondary-container flex items-center justify-center shadow-[0_0_12px_rgba(124,58,237,0.4)]">
+            <span class="material-symbols-outlined text-white text-[20px] icon-filled">live_tv</span>
+          </div>
+          <div class="flex flex-col">
+            <span id="header-title" class="text-[17px] font-bold tracking-tight text-on-surface leading-none">BingeTrack</span>
+            <span id="header-subtitle" class="text-[10px] font-bold uppercase tracking-wider text-secondary leading-none mt-1">Schedule</span>
+          </div>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="quickAddShow()" class="h-8 px-2.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold flex items-center gap-1 shadow-[0_0_12px_rgba(124,58,237,0.4)] active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[16px]">add</span>
+            <span>Add</span>
+          </button>
+          <img alt="Profile" class="w-8 h-8 rounded-full object-cover ring-2 ring-primary-container/40" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBbJe8BPuAWwMd50dP0ce2rtXymzx1zV68MQIcQ7wJOdg0DEdV6ECAiCV4g1BzuxnmiHkYJFfDhKtVuRkm7pFHbfxXITgQyGHS70xln3r6c1BUBs9lVVkojy9t0cocvlgZh4q9TrCefdEhIyQU_RFfxMrEUPXGzEmGCCqCTvioMoDBufftc7hJ-pFZOxJH1sTp9i6w0yZS_43uw3AYDUTtBZSq3HW69APyBFUgu4aOYsjinlpFigVUR" />
+        </div>
+      </header>
+
+      <!-- MAIN SCROLLABLE SCREEN VIEWPORT -->
+      <main id="viewport" class="flex-1 overflow-y-auto no-scrollbar bg-background relative">
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 1: AIR SCHEDULE & UP NEXT                          -->
+        <!-- ========================================================= -->
+        <div id="screen-schedule" class="pb-6">
+          <!--Greeting -->
+          <section class="px-4 pt-4 pb-2 flex flex-col gap-1">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-secondary">Live Schedule Sync</span>
+              </div>
+              <span class="text-[10px] font-bold text-outline px-2 py-0.5 rounded-full bg-surface-container-high">EST (UTC-5)</span>
+            </div>
+            <h1 class="text-xl font-bold text-on-surface tracking-tight mt-0.5">Good evening, Alex</h1>
+            <p class="text-xs text-on-surface-variant flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[16px] text-primary icon-filled">notifications_active</span>
+              <span>3 shows dropping tonight in your queue</span>
+            </p>
+          </section>
+
+          <!-- Day Picker Ribbon -->
+          <section class="py-2">
+            <div class="flex items-center gap-2 overflow-x-auto no-scrollbar px-4">
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline">
+                <span class="text-[10px] font-bold">WED</span>
+                <span class="text-base font-bold text-on-surface">23</span>
+              </button>
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline">
+                <span class="text-[10px] font-bold">THU</span>
+                <span class="text-base font-bold text-on-surface">24</span>
+              </button>
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[68px] py-2 px-3 rounded-xl bg-gradient-to-b from-primary-container to-tertiary-container shadow-[0_0_20px_rgba(124,58,237,0.5)] text-white">
+                <span class="text-[10px] font-extrabold">TODAY</span>
+                <span class="text-base font-extrabold">25</span>
+              </button>
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline">
+                <span class="text-[10px] font-bold">SAT</span>
+                <span class="text-base font-bold text-on-surface">26</span>
+              </button>
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline">
+                <span class="text-[10px] font-bold">SUN</span>
+                <span class="text-base font-bold text-on-surface">27</span>
+              </button>
+              <button onclick="selectDayPill(this)" class="day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline">
+                <span class="text-[10px] font-bold">MON</span>
+                <span class="text-base font-bold text-on-surface">28</span>
+              </button>
+            </div>
+          </section>
+
+          <!-- Filter Chips -->
+          <section class="px-4 pb-3 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button class="px-3 py-1.5 rounded-full bg-surface-container-highest text-secondary text-xs font-semibold flex items-center gap-1 shrink-0">
+              <span class="material-symbols-outlined text-[14px] icon-filled">check</span>
+              <span>All Airing</span>
+            </button>
+            <button class="px-3 py-1.5 rounded-full bg-surface-container/70 text-on-surface-variant text-xs font-semibold shrink-0">My Tracked (4)</button>
+            <button class="px-3 py-1.5 rounded-full bg-surface-container/70 text-on-surface-variant text-xs font-semibold shrink-0">Premieres Only</button>
+          </section>
+
+          <!-- Airing Tonight Hero Spotlight Card -->
+          <section class="px-4 pb-6">
+            <div class="flex items-center justify-between pb-2">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-secondary text-[20px] icon-filled">bolt</span>
+                <h2 class="text-base font-bold text-on-surface">Airing Tonight</h2>
+              </div>
+              <span class="text-[10px] uppercase tracking-wider text-primary font-bold">Schedule Alert</span>
+            </div>
+
+            <div class="rounded-2xl overflow-hidden bg-surface-container-low shadow-2xl border border-white/5">
+              <div class="relative w-full h-48 bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBlyTFV7rUonOMRk9ReP_Gb3UpddbFMRetU-ad4tjbm68wA65Y2mlLfrPLIQWNyrznU3GfrblVXmm1r0XCsDsmy4tBS7ATEltjVDecYouASmZWXxiBWLirpeoQnO4-Fh9JMv5ctGBvis3VOsuMF6Vj50Bq1ZwdwsoZDj3_9oSemvZzaTpYXFQ3yS-Y3w55Edokx51ch5vn-SKgGjmbCjI-HGjAOgJt110kqwttbGIW3lJPvCX9FwPTc')">
+                <div class="absolute inset-0 bg-gradient-to-t from-surface-container-low via-surface-container-low/50 to-transparent"></div>
+                <div class="absolute top-3 left-3 right-3 flex items-center justify-between">
+                  <div class="flex items-center gap-1.5">
+                    <span class="px-2 py-0.5 rounded bg-black/60 backdrop-blur-md text-white text-[10px] font-bold flex items-center gap-1">
+                      <span class="material-symbols-outlined text-[13px]">tv</span> Apple TV+
+                    </span>
+                    <span class="px-2 py-0.5 rounded bg-surface-container-highest/80 text-secondary text-[10px] font-bold">4K HDR</span>
+                  </div>
+                  <div class="flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-primary-container shadow-[0_0_12px_rgba(124,58,237,0.6)]">
+                    <span class="w-1.5 h-1.5 rounded-full bg-white animate-ping"></span>
+                    <span class="text-[10px] text-white font-bold">Drops in 2h 45m</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="p-4 -mt-6 relative z-10 flex flex-col gap-2">
+                <div class="flex items-baseline gap-2">
+                  <span class="text-xs font-bold text-secondary uppercase tracking-wider">Season 2 · Episode 3</span>
+                  <span class="text-outline text-xs">•</span>
+                  <span class="text-[11px] text-outline">9:00 PM EST</span>
+                </div>
+                <h3 class="text-2xl font-extrabold text-white tracking-tight">Severance</h3>
+                <p class="text-xs text-on-surface-variant italic">“The Grim Barbarity”</p>
+                <p class="text-xs text-on-surface-variant">Mark discovers an unscheduled macrodata pipeline anomaly while Cobel investigates an irregular hallway meeting.</p>
+
+                <div class="pt-2 flex items-center gap-2.5">
+                  <button id="alertToggleBtn" onclick="toggleAlertState()" class="flex-1 h-10 px-4 rounded-xl bg-gradient-to-r from-primary-container to-tertiary-container text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-[0_0_16px_rgba(124,58,237,0.45)]">
+                    <span id="alertIcon" class="material-symbols-outlined text-[18px] icon-filled">alarm_on</span>
+                    <span id="alertLabel">Alert Active</span>
+                  </button>
+                  <button onclick="openShowDetail('Severance')" class="h-10 px-4 rounded-xl bg-surface-container-highest text-on-surface text-xs font-bold flex items-center gap-1.5">
+                    <span class="material-symbols-outlined text-[18px]">info</span>
+                    <span>Details</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Up Next & Continue Section -->
+          <section class="px-4 pb-6 flex flex-col gap-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-1.5">
+                <span class="material-symbols-outlined text-primary text-[20px] icon-filled">play_circle</span>
+                <h2 class="text-base font-bold text-on-surface">Up Next &amp; Continue</h2>
+              </div>
+              <button onclick="switchScreen('watchlist')" class="text-xs text-secondary font-semibold flex items-center">
+                View All (7) <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </button>
+            </div>
+
+            <!-- The Last of Us -->
+            <div class="rounded-xl p-3 bg-surface-container/75 flex items-center gap-3">
+              <div onclick="openShowDetail('The Last of Us')" class="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 cursor-pointer">
+                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAxmwUpTdKYNxg3SMLRYxt_eD0mNUxdq7g3df0SCpb_P6eL3MgjjPQBc2RK7tmszXhW3V21b7RiOV0u1ghJCWNHrale_3C6EH-y7C8CiwKtgYC8vSrg8iJXPHJeMSt2j_xYIx6wJE21bhMbs1WQiIUid77znabjc7t_VaSXLoouO-ir5InMKlM2UENbNFo_bH8vOai0MlI0z6IAuMLDbrqAwUQZ0Vf_hq8F3BAGhv0-FEyd1wVj6LEW" />
+                <span class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] text-white font-bold">MAX</span>
+              </div>
+              <div onclick="openShowDetail('The Last of Us')" class="flex-1 min-w-0 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-bold text-white truncate">The Last of Us</h4>
+                  <span class="text-[11px] text-secondary font-bold">S2:E1</span>
+                </div>
+                <p class="text-xs text-on-surface-variant">80% watched (48m / 60m)</p>
+                <div class="w-full h-1.5 rounded-full bg-surface-container-highest mt-2 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-primary-container to-secondary" style="width: 80%"></div>
+                </div>
+              </div>
+              <button onclick="toggleCardDone(this)" class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+              </button>
+            </div>
+
+            <!-- Arcane -->
+            <div class="rounded-xl p-3 bg-surface-container/75 flex items-center gap-3">
+              <div onclick="openShowDetail('Arcane')" class="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 cursor-pointer">
+                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSgVQA-DpGERDSqUt91k7SqomSkDxi-cSdWP-qzqg_87AoFoR8zLK1izKOv4mI4dIdQ1iQ34NLz1GC8fKNKiKiM9SvBejpXNywA_VZWvaP72BLYvXkoA3Ve45-mUOwE3CRcdcF1byXDQqgxF9jfi19eChnJMxHi9tInqOwx1_xy1l66_3h7NidiGLU2MGnwfAthwrj2Z6qvEXKoPPdER8eToF50K_IR2UYms3-UrzPYwKqBm18TTLb" />
+                <span class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#E50914] text-[9px] text-white font-bold">NETFLIX</span>
+              </div>
+              <div onclick="openShowDetail('Arcane')" class="flex-1 min-w-0 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-bold text-white truncate">Arcane</h4>
+                  <span class="text-[11px] text-primary font-bold">S2:E6</span>
+                </div>
+                <p class="text-xs text-secondary">Next: S2:E7 Drops Friday</p>
+                <div class="w-full h-1.5 rounded-full bg-surface-container-highest mt-2 overflow-hidden">
+                  <div class="h-full bg-primary" style="width: 66%"></div>
+                </div>
+              </div>
+              <button onclick="toggleCardDone(this)" class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+              </button>
+            </div>
+
+            <!-- The Bear -->
+            <div class="rounded-xl p-3 bg-surface-container/75 flex items-center gap-3">
+              <div onclick="openShowDetail('The Bear')" class="relative w-24 h-16 rounded-lg overflow-hidden shrink-0 cursor-pointer">
+                <img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCYknGgXDngCoc5eXsxwwJ7-wuL1MXkht68okNlgN5OW1I6a6H_YhQQuMM3w9bM9SMzQB3Ge4DMMj87C_ZQoDmHFdp-RdNpVbEkbg_AgFKaNPuuEucNLUCUVrQo7bSWy5mahpgUuT4EmuApYnX0ioJXt4B1NlJkiOPEeKA1GjmelbeP6Lb21aqV4EnWqhybu9xBX5ixAf77IFregJpM4G-lJDUGy7zTBTQhAoVswhJHcMKLjaOu8Att" />
+                <span class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-[#1CE783] text-[9px] text-black font-extrabold">HULU</span>
+              </div>
+              <div onclick="openShowDetail('The Bear')" class="flex-1 min-w-0 cursor-pointer">
+                <div class="flex items-center justify-between">
+                  <h4 class="text-sm font-bold text-white truncate">The Bear</h4>
+                  <span class="text-[11px] text-outline font-bold">S3:E8</span>
+                </div>
+                <p class="text-xs text-on-surface-variant">1 episode remaining in season</p>
+                <div class="w-full h-1.5 rounded-full bg-surface-container-highest mt-2 overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-primary to-secondary-container" style="width: 90%"></div>
+                </div>
+              </div>
+              <button onclick="toggleCardDone(this)" class="w-9 h-9 rounded-full bg-surface-container-highest text-on-surface-variant flex items-center justify-center shrink-0">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+              </button>
+            </div>
+          </section>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 2: MY WATCHLIST                                    -->
+        <!-- ========================================================= -->
+        <div id="screen-watchlist" class="hidden px-4 pt-3 pb-8 flex flex-col gap-4">
+          <div class="flex items-center gap-2">
+            <div class="relative flex-1 flex items-center">
+              <span class="material-symbols-outlined absolute left-3 text-[18px] text-outline">search</span>
+              <input id="watchlist-filter-input" oninput="renderWatchlistCards()" class="w-full h-10 pl-9 pr-3 bg-surface-container-high rounded-xl text-xs text-on-surface placeholder:text-outline focus:outline-none" placeholder="Filter title, network..." type="text" />
+            </div>
+            <div class="flex items-center p-1 bg-surface-container-high rounded-xl">
+              <button id="viewListBtn" onclick="setWatchlistView(false)" class="w-8 h-8 flex items-center justify-center rounded-lg bg-primary-container text-on-primary-container">
+                <span class="material-symbols-outlined text-[18px]">view_agenda</span>
+              </button>
+              <button id="viewGridBtn" onclick="setWatchlistView(true)" class="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant">
+                <span class="material-symbols-outlined text-[18px]">grid_view</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <button class="px-3 py-1.5 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold flex items-center gap-1.5 shrink-0">
+              <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span> Watching 14
+            </button>
+            <button class="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-semibold shrink-0">Up to Date 8</button>
+            <button class="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-semibold shrink-0">Upcoming 22</button>
+            <button class="px-3 py-1.5 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-semibold shrink-0">Completed 45</button>
+          </div>
+
+          <div id="watchlist-container" class="flex flex-col gap-3"></div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 3: SHOW DETAILS & EPISODES                         -->
+        <!-- ========================================================= -->
+        <div id="screen-details" class="hidden pb-8">
+          <div class="relative w-full h-60 overflow-hidden bg-surface-container-lowest">
+            <div class="w-full h-full bg-cover bg-center" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCj6Z2nGrfhO4gV7D5mY_Ze1l27wb1asu1ELx0cg57_VmnKvGtVfnb-9FS_rCaB-gdTNacMZVq3mp_7jNOZKn5mnKl3Ymp0IvA8QbH8lJ-dbreHwSKVpgbrxWg9G0UnwlYiP0MjjYwmKS_FhXjatIxB9lBsVuRUnWXu9meOwCq-Qm3blXQdkwdSYyvLj2zFfHec4cMBYwMAgpMsInGtbE2IkqRFlmuxRxHkDa7V4X_Z5w3kkAp0PxL_')"></div>
+            <div class="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent"></div>
+            <div class="absolute bottom-2 left-4 right-4 flex flex-col gap-1">
+              <div class="flex items-center gap-1.5">
+                <span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-on-surface-variant text-[10px] font-bold uppercase">Apple TV+</span>
+                <span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-on-surface-variant text-[10px]">4K HDR</span>
+                <span class="px-2 py-0.5 rounded bg-surface-container-high/90 text-on-surface-variant text-[10px]">Dolby Atmos</span>
+              </div>
+              <h2 id="detail-title" class="text-3xl font-extrabold text-on-surface tracking-tight">Severance</h2>
+              <p class="text-xs text-on-surface-variant italic">"Please do not attempt to remember this."</p>
+            </div>
+          </div>
+
+          <div class="px-4 pt-3 flex flex-col gap-4">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low">
+                <span class="material-symbols-outlined text-amber-400 text-[16px] icon-filled">star</span>
+                <span class="text-sm font-bold text-on-surface">8.7</span>
+                <span class="text-[10px] text-on-surface-variant">/10 IMDb</span>
+              </div>
+              <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface-container-low">
+                <span class="material-symbols-outlined text-rose-400 text-[16px] icon-filled">local_fire_department</span>
+                <span class="text-sm font-bold text-on-surface">97%</span>
+                <span class="text-[10px] text-on-surface-variant">Rotten Tomatoes</span>
+              </div>
+            </div>
+
+            <!-- Watch Progress Bento -->
+            <div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-secondary text-[18px]">donut_large</span>
+                  <span class="text-sm font-bold text-on-surface">Watch Progress</span>
+                </div>
+                <span id="detail-pct-label" class="text-sm font-bold text-secondary">66%</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                <div id="detail-pct-bar" class="h-full bg-gradient-to-r from-primary-container via-tertiary to-secondary transition-all duration-300" style="width: 66%"></div>
+              </div>
+              <div class="flex justify-between text-xs text-on-surface-variant">
+                <span id="detail-logged-label">12 of 18 Episodes Logged</span>
+                <span id="detail-rem-label" class="text-tertiary font-semibold">6 remaining</span>
+              </div>
+              <button onclick="toggleEpisode3Watched()" class="w-full mt-1 py-2 px-3 rounded-lg bg-surface-container-high hover:bg-surface-bright flex items-center justify-between text-xs font-semibold">
+                <span>Quick Action: Log S2:E3</span>
+                <span class="text-secondary flex items-center gap-1">Mark Watched <span class="material-symbols-outlined text-[15px]">done</span></span>
+              </button>
+            </div>
+
+            <!-- Episode List -->
+            <div class="flex flex-col gap-2.5" id="episodes-checklist"></div>
+          </div>
+        </div>
+
+        <!-- ========================================================= -->
+        <!-- SCREEN 4: STATS & RELEASE PLANNER                         -->
+        <!-- ========================================================= -->
+        <div id="screen-stats" class="hidden px-4 pt-3 pb-8 flex flex-col gap-4">
+          <div class="flex p-1 bg-surface-container-low rounded-xl">
+            <button id="tab-cal-btn" onclick="switchStatsTab('calendar')" class="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-surface-container-high text-on-surface shadow">
+              <span class="material-symbols-outlined text-[16px] text-secondary">event</span>
+              <span>Calendar</span>
+            </button>
+            <button id="tab-binge-btn" onclick="switchStatsTab('stats')" class="flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 text-on-surface-variant">
+              <span class="material-symbols-outlined text-[16px]">query_stats</span>
+              <span>Binge Stats</span>
+            </button>
+          </div>
+
+          <!-- Calendar Section -->
+          <div id="stats-calendar-section" class="flex flex-col gap-4">
+            <div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-3">
+              <div class="flex items-center justify-between">
+                <span class="text-base font-bold text-on-surface">October 2026</span>
+                <span class="px-2 py-0.5 rounded-full bg-primary-container/20 text-primary text-[10px] font-bold">5 Premieres</span>
+              </div>
+              <div class="grid grid-cols-7 text-center text-[10px] font-bold text-outline">
+                <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              </div>
+              <div class="grid grid-cols-7 gap-y-2 text-center text-xs">
+                <span class="text-outline-variant py-1">21</span>
+                <span class="text-outline-variant py-1">22</span>
+                <span class="text-outline-variant py-1">23</span>
+                <span class="text-outline-variant py-1">24</span>
+                <span class="py-1 rounded-lg bg-surface-container-high text-secondary font-bold">25●</span>
+                <span class="text-on-surface-variant py-1">26</span>
+                <span class="py-1 rounded-lg bg-primary-container text-white font-bold">27●</span>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-2.5">
+              <span class="text-xs font-bold text-secondary">● Friday, October 25 • 2 Episodes Airing</span>
+              <div onclick="openShowDetail('Severance')" class="flex items-center gap-3 p-2.5 bg-surface-container-low rounded-xl cursor-pointer">
+                <img class="w-20 h-14 rounded-lg object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBcKY6xcdBSEW43BJTVS5OLzfL8uM3doqeUn61ssuowWMijpYUtWOqhj1PBPXXMWs-0nRgaUib0appxP1rc31PEUYGQmI8nAUiFB8buEDPWotkEa7xleNcGVVJYc0W68GKG4XxslbTOpMiXBiNGA7OBsJXglUj-fR-DDxUFStzX4uR0Ic6x3aieu2JYTB77OEQryjsWx0og7gOiwtN6ZFCdw0hJ3rH07aeKl4CMw2HfeZmKSoWmtGiu" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between">
+                    <span class="text-sm font-bold text-on-surface truncate">Severance</span>
+                    <span class="text-[10px] font-bold text-secondary">03:00 AM</span>
+                  </div>
+                  <p class="text-xs text-on-surface-variant truncate">S2 • E3: "The Macrodata Echo"</p>
+                  <p class="text-[10px] text-outline">54 mins • Apple TV+</p>
+                </div>
+              </div>
+
+              <span class="text-xs font-bold text-primary pt-1">● Sunday, October 27 • Gotham Night</span>
+              <div onclick="openShowDetail('The Penguin')" class="flex items-center gap-3 p-2.5 bg-surface-container-low rounded-xl cursor-pointer">
+                <img class="w-20 h-14 rounded-lg object-cover shrink-0" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6d62xC9In8pIPZTut_e10-cNrDrh6sdoUbrnFfXeXqFs-5g3HgLSHbY3nG0LhWJBdYNKExvfo6A4jur8fhzMMy4t_93UZXHhAfblNUEmfME3XiN75AUqso9NYmM7dMbhwBUF4hEZs259Lx8PHSFzN7P6YZKrVglQFlsVGfG519ILdFcX7DKVmw5C0UGJhecPGoFZJyV1Dsf1C8WKg_IOk8LCKibOch2vLjdcKd6BD6ccKPKNMR4Q-" />
+                <div class="flex-1 min-w-0">
+                  <div class="flex justify-between">
+                    <span class="text-sm font-bold text-on-surface truncate">The Penguin</span>
+                    <span class="text-[10px] font-bold text-primary">09:00 PM</span>
+                  </div>
+                  <p class="text-xs text-on-surface-variant truncate">S1 • E6: "Gold Summit"</p>
+                  <p class="text-[10px] text-outline">58 mins • Max</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Binge Stats Section -->
+          <div id="stats-metrics-section" class="hidden flex flex-col gap-4">
+            <div class="p-4 rounded-xl bg-surface-container-low flex flex-col gap-2">
+              <span class="text-[10px] uppercase tracking-wider text-outline font-bold">Total Time In Cinematic Worlds</span>
+              <div class="flex items-baseline gap-2">
+                <span class="text-3xl font-extrabold text-on-surface">342h</span>
+                <span class="text-sm font-bold text-primary">≈ 14.2 Days</span>
+              </div>
+              <span class="text-xs text-on-surface-variant">+18.4 hrs logged in the last 7 days</span>
+              <div class="w-full h-2 rounded-full bg-surface-container-highest mt-1 overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary-container to-secondary-container" style="width: 81%"></div>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div class="p-4 bg-surface-container-low rounded-xl">
+                <span class="text-[10px] text-outline font-bold">LIBRARY</span>
+                <div class="text-xl font-bold text-on-surface mt-1">48 Shows</div>
+                <div class="text-xs text-secondary">14 Actively Tracking</div>
+              </div>
+              <div class="p-4 bg-surface-container-low rounded-xl">
+                <span class="text-[10px] text-outline font-bold">MILESTONE</span>
+                <div class="text-xl font-bold text-on-surface mt-1">720 Ep</div>
+                <div class="text-xs text-on-surface-variant">All-time catalog</div>
+              </div>
+            </div>
+
+            <div class="p-4 bg-surface-container-low rounded-xl flex flex-col gap-2.5">
+              <span class="text-sm font-bold text-on-surface">Cinematic Genre DNA</span>
+              <div>
+                <div class="flex justify-between text-xs mb-1"><span>Sci-Fi &amp; Speculative Fiction</span><span class="text-secondary font-bold">42%</span></div>
+                <div class="w-full h-1.5 rounded-full bg-surface-container"><div class="h-full rounded-full bg-secondary" style="width: 42%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1"><span>Crime Noir &amp; Thriller</span><span class="text-primary font-bold">28%</span></div>
+                <div class="w-full h-1.5 rounded-full bg-surface-container"><div class="h-full rounded-full bg-primary-container" style="width: 28%"></div></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1"><span>Dark Satire &amp; Comedy</span><span class="text-tertiary font-bold">18%</span></div>
+                <div class="w-full h-1.5 rounded-full bg-surface-container"><div class="h-full rounded-full bg-tertiary-container" style="width: 18%"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- Bottom Navigation Bar -->
+      <nav class="h-16 bg-surface-container-lowest/95 border-t border-white/5 flex justify-around items-center px-2 shrink-0">
+        <button id="nav-schedule" onclick="switchScreen('schedule')" class="flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-primary-container bg-gradient-to-r from-primary-container to-secondary-container shadow-[0_0_16px_rgba(124,58,237,0.45)] transition-all">
+          <span class="material-symbols-outlined text-[20px]">calendar_today</span>
+          <span class="text-[10px] font-bold">Schedule</span>
+        </button>
+        <button id="nav-watchlist" onclick="switchScreen('watchlist')" class="flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-surface-variant hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-[20px]">bookmarks</span>
+          <span class="text-[10px] font-bold">Watchlist</span>
+        </button>
+        <button id="nav-details" onclick="switchScreen('details')" class="flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-surface-variant hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-[20px]">explore</span>
+          <span class="text-[10px] font-bold">Details</span>
+        </button>
+        <button id="nav-stats" onclick="switchScreen('stats')" class="flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-surface-variant hover:text-on-surface transition-all">
+          <span class="material-symbols-outlined text-[20px]">bar_chart</span>
+          <span class="text-[10px] font-bold">Stats</span>
+        </button>
+      </nav>
+
+      <!-- Android Home Indicator Bar -->
+      <div class="h-5 bg-surface-container-lowest rounded-b-[38px] flex items-center justify-center shrink-0">
+        <div class="w-28 h-1 rounded-full bg-white/30"></div>
+      </div>
+    </div>
+
+    <!-- SIDE EMULATOR CONTROLS PANEL -->
+    <div class="w-full max-w-xs bg-[#121621] border border-white/10 rounded-2xl p-5 flex flex-col gap-4 shadow-2xl">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-base font-bold text-white">Pixel 9 Pro XL</h2>
+          <p class="text-xs text-outline">Android 15 · Obsidian Cinema</p>
+        </div>
+        <span class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold">● Live</span>
+      </div>
+
+      <div class="border-t border-white/10 pt-3 flex flex-col gap-2">
+        <span class="text-xs font-bold uppercase tracking-wider text-secondary">Stitch Screens</span>
+        <button onclick="switchScreen('schedule')" class="text-left px-3.5 py-2.5 rounded-xl bg-[#1d2230] hover:bg-primary-container text-xs font-semibold text-white transition-all">
+          1. Air Schedule &amp; Up Next
+        </button>
+        <button onclick="switchScreen('watchlist')" class="text-left px-3.5 py-2.5 rounded-xl bg-[#1d2230] hover:bg-primary-container text-xs font-semibold text-white transition-all">
+          2. My Watchlist
+        </button>
+        <button onclick="switchScreen('details')" class="text-left px-3.5 py-2.5 rounded-xl bg-[#1d2230] hover:bg-primary-container text-xs font-semibold text-white transition-all">
+          3. Show Details &amp; Episodes
+        </button>
+        <button onclick="switchScreen('stats')" class="text-left px-3.5 py-2.5 rounded-xl bg-[#1d2230] hover:bg-primary-container text-xs font-semibold text-white transition-all">
+          4. Stats &amp; Release Planner
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const showsCatalog = [
+      {
+        title: "Severance",
+        network: "Apple TV+",
+        subtitle: "S2:E3 airs tonight · 9:00 PM",
+        watched: 12,
+        total: 18,
+        badge: "Tonight",
+        poster: "https://lh3.googleusercontent.com/aida-public/AB6AXuAMM7Ps5JIUcBL23m_KjWxOS785KGQDdBWvSOfJsroAGDic2_U7_5OuP3CSBMcXsLgrOF3CNY3DMuX3M80Hn_EbaIWGBfEDRjWEzjT5W7y6-XeINXAUl7EyqHPstKChgbWnrwI7XX-yB79yN2Hs8ZcGPHDoBL_ozmLqSbs_qRbYU-XKlTdR2JoDUtmuJmLqPkcmXJog8MtAtoNP99JVtSsWWg0-WEygsTcH-QwPo6q-ejAMyLpa_THA"
+      },
+      {
+        title: "The Last of Us",
+        network: "Max",
+        subtitle: "S2:E2 airs Sunday",
+        watched: 8,
+        total: 9,
+        badge: "Sun",
+        poster: "https://lh3.googleusercontent.com/aida-public/AB6AXuCiEmunKP9n0cZFj84rZCDJONRPxQS5-H6g2H18fQKhpj6X7PcdXj76aRijbnW161wDHaX96cMOnWvocXZ4GMvvunJjozr06mwnBRj_IQLKh_SF-K8-BWfu28JGK2pMMVt7ocL1NBHKe2LA0nG2AARrli5mTApEnLsd2u9_2G16sXKzK47FupuG3DQCEm1Uhizx6pcE_xEVXsqip2aDk4569RkMm6XfVOmKU8NF7BiY27llcTsW0DxC"
+      },
+      {
+        title: "Silo",
+        network: "Apple TV+",
+        subtitle: "Season 2 · Ep 6 is streaming",
+        watched: 6,
+        total: 10,
+        badge: "-4 behind",
+        poster: "https://lh3.googleusercontent.com/aida-public/AB6AXuBiw_UXy4t6JmheAZRNOkDXNYQiykolEN52uHhXc4G1s8bBTQ3sfxawqtP7vRCXb9XELJ7DyoLkdNu8FIeRJCDBUC7k1iM29y05vu1ZjMaQ7NWRa9s0_qCb-KDW5u4yF31Krkul0YGL8mvtKZewJUr-zCn_dYZuACulYIg7IBinexU39GchtSJ1wog668AaNTZw7xKtaH4xSQIE9eOQck33DkuvqVZef4DrUs2WFbwumGW8S881iEHm"
+      },
+      {
+        title: "Shōgun",
+        network: "FX / Hulu",
+        subtitle: "Season 1 Finale watched",
+        watched: 10,
+        total: 10,
+        badge: "Caught Up",
+        poster: "https://lh3.googleusercontent.com/aida-public/AB6AXuBKVgdCnOkgYB0rCuUGBZIuVfWoSmUZm9BUc82U9Od2EOYGRV23muW8RpsBl3dNMdByGmc_F3F0iKLI32ogF7hv_8jHyH-YXkRaFARGV3VNdLBZk2g0RQ9CUmT9cV2ZP2ZUJ6sPBU9X0RQ3sTbBGZrZpa4-3VjPSGQnkV7UdGqRnbmTd2uM5r3s6JV-tQ3oTHYq0XFGPc9lGFGfrf78aEYZ3UMcCwTW3lcMygy2z1ytT7rCJ7auYKJ4"
+      }
+    ];
+
+    const episodesData = [
+      { code: "S2 : E1", title: "Goodbye Lumon", date: "Oct 11", duration: "54m", watched: true, locked: false },
+      { code: "S2 : E2", title: "The Break Room Protocol", date: "Oct 18", duration: "51m", watched: true, locked: false },
+      { code: "S2 : E3", title: "The Grim Barbarity", date: "TONIGHT 9:00 PM", duration: "56m", watched: false, locked: false },
+      { code: "S2 : E4", title: "Woe's Hollow", date: "Nov 1", duration: "52m", watched: false, locked: true }
+    ];
+
+    let watchlistGrid = false;
+
+    function renderWatchlistCards() {
+      const q = (document.getElementById("watchlist-filter-input")?.value || "").toLowerCase();
+      const container = document.getElementById("watchlist-container");
+      container.className = watchlistGrid ? "grid grid-cols-2 gap-3" : "flex flex-col gap-3";
+      container.innerHTML = "";
+
+      showsCatalog
+        .filter(s => s.title.toLowerCase().includes(q) || s.network.toLowerCase().includes(q))
+        .forEach((s, idx) => {
+          const pct = Math.round((s.watched / s.total) * 100);
+          const el = document.createElement("div");
+          el.className = watchlistGrid
+            ? "flex flex-col bg-surface-container/75 rounded-xl p-2.5 gap-2"
+            : "flex bg-surface-container/75 rounded-xl p-3 gap-3";
+          el.innerHTML = `
+            <div onclick="openShowDetail('${s.title}')" class="relative ${watchlistGrid ? 'w-full h-32' : 'w-20 h-28'} rounded-lg overflow-hidden shrink-0 cursor-pointer">
+              <img class="w-full h-full object-cover" src="${s.poster}" />
+              <span class="absolute bottom-1 left-1 right-1 bg-surface-container-lowest/90 text-center rounded py-0.5 text-[9px] font-bold text-secondary uppercase">${s.badge}</span>
+            </div>
+            <div class="flex-1 min-w-0 flex flex-col justify-between">
+              <div onclick="openShowDetail('${s.title}')" class="cursor-pointer">
+                <span class="text-[10px] px-1.5 py-0.5 rounded bg-surface-container-highest text-on-surface-variant font-bold uppercase">${s.network}</span>
+                <h3 class="text-sm font-bold text-on-surface truncate mt-1">${s.title}</h3>
+                <p class="text-xs text-secondary truncate">${s.subtitle}</p>
+              </div>
+              <div class="mt-2">
+                <div class="flex justify-between text-[11px] text-on-surface-variant mb-1">
+                  <span>${s.watched}/${s.total} eps</span>
+                  <span class="text-primary font-bold">${pct}%</span>
+                </div>
+                <div class="w-full h-1.5 bg-surface-container-highest rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-primary-container to-secondary" style="width:${pct}%"></div>
+                </div>
+                <div class="flex justify-end gap-1.5 mt-2">
+                  <button onclick="incShowEp(${idx})" class="w-7 h-7 rounded-lg bg-surface-container-high text-on-surface-variant flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[15px]">add</span>
+                  </button>
+                  <button onclick="catchUpShow(${idx})" class="w-7 h-7 rounded-lg bg-primary-container/25 text-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-[15px]">done_all</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `;
+          container.appendChild(el);
+        });
+    }
+
+    function incShowEp(idx) {
+      if (showsCatalog[idx].watched < showsCatalog[idx].total) {
+        showsCatalog[idx].watched++;
+        renderWatchlistCards();
+      }
+    }
+
+    function catchUpShow(idx) {
+      showsCatalog[idx].watched = showsCatalog[idx].total;
+      renderWatchlistCards();
+    }
+
+    function setWatchlistView(grid) {
+      watchlistGrid = grid;
+      document.getElementById("viewGridBtn").className = grid
+        ? "w-8 h-8 flex items-center justify-center rounded-lg bg-primary-container text-on-primary-container"
+        : "w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant";
+      document.getElementById("viewListBtn").className = !grid
+        ? "w-8 h-8 flex items-center justify-center rounded-lg bg-primary-container text-on-primary-container"
+        : "w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant";
+      renderWatchlistCards();
+    }
+
+    function renderChecklist() {
+      const box = document.getElementById("episodes-checklist");
+      box.innerHTML = "";
+      episodesData.forEach((ep, i) => {
+        const item = document.createElement("div");
+        item.className = "p-3 rounded-xl bg-surface-container-low flex items-center justify-between gap-3";
+        item.innerHTML = `
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center gap-1.5 text-[10px]">
+              <span class="font-bold text-secondary">${ep.code}</span>
+              <span>•</span>
+              <span class="text-on-surface-variant">${ep.date}</span>
+              <span>•</span>
+              <span class="text-outline">${ep.duration}</span>
+            </div>
+            <h4 class="text-sm font-bold text-on-surface truncate mt-0.5">${ep.title}</h4>
+          </div>
+          <button onclick="toggleEpIdx(${i})" class="w-9 h-9 rounded-full flex items-center justify-center ${
+            ep.locked ? 'bg-surface-container-lowest text-outline cursor-not-allowed' :
+            ep.watched ? 'bg-primary-container text-on-primary-container shadow-[0_0_12px_rgba(124,58,237,0.4)]' :
+            'bg-surface-container-highest text-on-surface-variant'
+          }">
+            <span class="material-symbols-outlined text-[18px]">${ep.locked ? 'lock' : ep.watched ? 'done' : 'radio_button_unchecked'}</span>
+          </button>
+        `;
+        box.appendChild(item);
+      });
+
+      const logged = 10 + episodesData.filter(e => e.watched).length;
+      const pct = Math.round((logged / 18) * 100);
+      document.getElementById("detail-pct-label").textContent = pct + "%";
+      document.getElementById("detail-pct-bar").style.width = pct + "%";
+      document.getElementById("detail-logged-label").textContent = `${logged} of 18 Episodes Logged`;
+      document.getElementById("detail-rem-label").textContent = `${18 - logged} remaining`;
+    }
+
+    function toggleEpIdx(i) {
+      if (episodesData[i].locked) return;
+      episodesData[i].watched = !episodesData[i].watched;
+      renderChecklist();
+    }
+
+    function toggleEpisode3Watched() {
+      toggleEpIdx(2);
+    }
+
+    function switchScreen(screen) {
+      ["schedule", "watchlist", "details", "stats"].forEach(s => {
+        document.getElementById("screen-" + s).classList.toggle("hidden", s !== screen);
+        const nav = document.getElementById("nav-" + s);
+        nav.className = s === screen
+          ? "flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-primary-container bg-gradient-to-r from-primary-container to-secondary-container shadow-[0_0_16px_rgba(124,58,237,0.45)] transition-all"
+          : "flex flex-col items-center justify-center h-11 px-3.5 rounded-full text-on-surface-variant hover:text-on-surface transition-all";
+      });
+
+      const meta = {
+        schedule: ["BingeTrack", "Schedule"],
+        watchlist: ["BingeTrack", "Watchlist"],
+        details: ["Show Detail", "Episodes"],
+        stats: ["BingeTrack", "Stats & Planner"]
+      };
+      document.getElementById("header-title").textContent = meta[screen][0];
+      document.getElementById("header-subtitle").textContent = meta[screen][1];
+      document.getElementById("header-back-btn").classList.toggle("hidden", screen !== "details");
+      document.getElementById("header-back-btn").classList.toggle("flex", screen === "details");
+      document.getElementById("viewport").scrollTop = 0;
+    }
+
+    function openShowDetail(title) {
+      document.getElementById("detail-title").textContent = title;
+      switchScreen("details");
+    }
+
+    function toggleAlertState() {
+      const label = document.getElementById("alertLabel");
+      const icon = document.getElementById("alertIcon");
+      const active = label.textContent.trim() === "Alert Active";
+      label.textContent = active ? "Notify Me" : "Alert Active";
+      icon.textContent = active ? "notifications" : "alarm_on";
+    }
+
+    function toggleCardDone(btn) {
+      const icon = btn.querySelector(".material-symbols-outlined");
+      const checked = btn.classList.contains("bg-secondary");
+      if (!checked) {
+        btn.classList.remove("bg-surface-container-highest", "text-on-surface-variant");
+        btn.classList.add("bg-secondary", "text-surface-container-lowest");
+        icon.textContent = "task_alt";
+      } else {
+        btn.classList.add("bg-surface-container-highest", "text-on-surface-variant");
+        btn.classList.remove("bg-secondary", "text-surface-container-lowest");
+        icon.textContent = "check";
+      }
+    }
+
+    function selectDayPill(btn) {
+      document.querySelectorAll(".day-pill").forEach(el => {
+        el.className = "day-pill flex flex-col items-center justify-center min-w-[56px] py-2 px-2 rounded-xl bg-surface-container/60 text-outline";
+      });
+      btn.className = "day-pill flex flex-col items-center justify-center min-w-[68px] py-2 px-3 rounded-xl bg-gradient-to-b from-primary-container to-tertiary-container shadow-[0_0_20px_rgba(124,58,237,0.5)] text-white";
+    }
+
+    function switchStatsTab(tab) {
+      const isCal = tab === "calendar";
+      document.getElementById("stats-calendar-section").classList.toggle("hidden", !isCal);
+      document.getElementById("stats-metrics-section").classList.toggle("hidden", isCal);
+      document.getElementById("tab-cal-btn").className = isCal
+        ? "flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-surface-container-high text-on-surface shadow"
+        : "flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 text-on-surface-variant";
+      document.getElementById("tab-binge-btn").className = !isCal
+        ? "flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 bg-surface-container-high text-on-surface shadow"
+        : "flex-1 py-2 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 text-on-surface-variant";
+    }
+
+    function quickAddShow() {
+      showsCatalog.unshift({
+        title: "Stranger Things",
+        network: "Netflix",
+        subtitle: "Final Season 5 Premiere",
+        watched: 4,
+        total: 8,
+        badge: "Nov 12",
+        poster: "https://lh3.googleusercontent.com/aida-public/AB6AXuDKovb4xVptdaHKdgGVKcSVCGIiTwprLYctIYdM8w-ZuDjvmixN0bz4xDqNoznHkamm4qrkrbfBrUlmx6Xj6pOCT7Ob-Uiy7KxePqbl9WyIhK2WLaTfycVDZ1Skh87W_ZzgGgYMHyNyOU3xwPbUNeGkN_IJHMot3QbbOGjHMku87njPyibHDH_hWbU2ACcz9C4wZtyyi6vas4_Y38jUL64AWVocwjr0xlfESagf8CGVLmXIZ_PDST8o"
+      });
+      renderWatchlistCards();
+      switchScreen("watchlist");
+    }
+
+    renderWatchlistCards();
+    renderChecklist();
+  </script>
+</body>
+</html>
